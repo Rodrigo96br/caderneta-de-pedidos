@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>PDV - Sistema de Pedidos</title>
+    <style>
+        body { font-family: Arial; padding: 100px; }
+        .card { border: 10px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 10px; }
+        img { max-width: 100px; margin-top: 10px; }
+        button { padding: 8px 15px; margin: 5px; }
+    </style>
+</head>
+<body>
+
+<h1>PDV - Sistema de Pedidos</h1>
+
+<!-- LOGIN -->
+<div class="card" id="loginBox">
+    <h3>Login</h3>
+    <input id="user" placeholder="Usuário"><br><br>
+    <input id="pass" placeholder="Senha" type="password"><br><br>
+    <button onclick="login()">Entrar</button>
+</div>
+
+<!-- CADASTRO DE ITENS -->
+<div class="card" id="cadastroBox" style="display:none">
+    <h3>Cadastrar Item</h3>
+    <input id="itemNome" placeholder="Nome do item"><br><br>
+    <input id="itemPreco" type="number" placeholder="Preço"><br><br>
+    <input id="itemFoto" type="file"><br><br>
+    <button onclick="cadastrarItem()">Salvar Item</button>
+
+    <h3>Itens cadastrados</h3>
+    <div id="listaItens"></div>
+</div>
+
+<!-- REALIZAR PEDIDO -->
+<div class="card" id="pedidoBox" style="display:none">
+    <h3>Novo Pedido</h3>
+    <select id="selectItem"></select>
+    <button onclick="addItemPedido()">Adicionar ao Pedido</button>
+
+    <h3>Itens do Pedido</h3>
+    <ul id="pedidoLista"></ul>
+
+    <h3>Total: R$ <span id="total">0.00</span></h3>
+
+    <button onclick="salvarPedido()">Salvar Pedido</button>
+</div>
+
+<!-- LISTA DE PEDIDOS SALVOS -->
+<div class="card" id="salvosBox" style="display:none">
+    <h3>Pedidos Salvos</h3>
+    <div id="pedidosSalvos"></div>
+</div>
+
+<script>
+    // LOGIN
+    const usuarioPadrao = "admin";
+    const senhaPadrao = "1234";
+
+    function login() {
+        let u = document.getElementById("user").value;
+        let p = document.getElementById("pass").value;
+
+        if (u === usuarioPadrao && p === senhaPadrao) {
+            document.getElementById("loginBox").style.display = "none";
+            document.getElementById("cadastroBox").style.display = "block";
+            document.getElementById("pedidoBox").style.display = "block";
+            document.getElementById("salvosBox").style.display = "block";
+            carregarItens();
+            carregarPedidos();
+        } else {
+            alert("Usuário ou senha incorretos!");
+        }
+    }
+
+    // CADASTRO DE ITENS
+    function cadastrarItem() {
+        let nome = document.getElementById("itemNome").value;
+        let preco = document.getElementById("itemPreco").value;
+        let foto = document.getElementById("itemFoto").files[0];
+
+        if (!nome || !preco || !foto) {
+            alert("Preencha tudo!");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let itens = JSON.parse(localStorage.getItem("itens") || "[]");
+
+            itens.push({ nome, preco, foto: e.target.result });
+            localStorage.setItem("itens", JSON.stringify(itens));
+            carregarItens();
+        };
+        reader.readAsDataURL(foto);
+    }
+
+    function carregarItens() {
+        let itens = JSON.parse(localStorage.getItem("itens") || "[]");
+        let lista = document.getElementById("listaItens");
+        let select = document.getElementById("selectItem");
+
+        lista.innerHTML = "";
+        select.innerHTML = "";
+
+        itens.forEach((item, index) => {
+            lista.innerHTML += `
+                <div>
+                    <b>${item.nome}</b> - R$ ${item.preco}
+                    <br><img src="${item.foto}">
+                    <br><button onclick="apagarItem(${index})">Apagar</button>
+                </div><hr>
+            `;
+
+            select.innerHTML += `<option value="${index}">${item.nome}</option>`;
+        });
+    }
+
+    function apagarItem(i) {
+        let itens = JSON.parse(localStorage.getItem("itens") || "[]");
+        itens.splice(i, 1);
+        localStorage.setItem("itens", JSON.stringify(itens));
+        carregarItens();
+    }
+
+    // PEDIDO
+    let pedido = [];
+
+    function addItemPedido() {
+        let itens = JSON.parse(localStorage.getItem("itens") || "[]");
+        let index = document.getElementById("selectItem").value;
+
+        pedido.push(itens[index]);
+
+        atualizarPedido();
+    }
+
+    function atualizarPedido() {
+        let lista = document.getElementById("pedidoLista");
+        let total = 0;
+        lista.innerHTML = "";
+
+        pedido.forEach((item, i) => {
+            total += Number(item.preco);
+            lista.innerHTML += `<li>${item.nome} - R$ ${item.preco}</li>`;
+        });
+
+        document.getElementById("total").innerText = total.toFixed(2);
+    }
+
+    function salvarPedido() {
+        let pedidos = JSON.parse(localStorage.getItem("pedidos") || "[]");
+        pedidos.push({ itens: pedido, total: document.getElementById("total").innerText });
+        localStorage.setItem("pedidos", JSON.stringify(pedidos));
+
+        pedido = [];
+        atualizarPedido();
+        carregarPedidos();
+
+        alert("Pedido salvo!");
+    }
+
+    function carregarPedidos() {
+        let pedidos = JSON.parse(localStorage.getItem("pedidos") || "[]");
+        let div = document.getElementById("pedidosSalvos");
+
+        div.innerHTML = "";
+
+        pedidos.forEach((p, i) => {
+            div.innerHTML += `
+                <div>
+                    <b>Pedido ${i + 1}</b><br>
+                    Itens: ${p.itens.length}<br>
+                    Total: R$ ${p.total}<br>
+                    <button onclick="apagarPedido(${i})">Excluir</button>
+                </div><hr>
+            `;
+        });
+    }
+
+    function apagarPedido(i) {
+        let pedidos = JSON.parse(localStorage.getItem("pedidos") || "[]");
+        pedidos.splice(i, 1);
+        localStorage.setItem("pedidos", JSON.stringify(pedidos));
+        carregarPedidos();
+    }
+</script>
+
+</body>
+</html>
