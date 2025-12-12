@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDV - Sistema Simples</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#94a3b8;--accent:#06b6d4;--success:#10b981}
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    body{margin:0;background:linear-gradient(180deg,#071024 0%, #071b2b 100%);color:#e6eef6}
+    .container{max-width:1100px;margin:28px auto;padding:20px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    h1{margin:0;font-size:20px}
+    .card{background:rgba(255,255,255,0.02);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(3,7,18,0.6)}
+    .grid{display:grid;gap:12px}
+    .two{grid-template-columns:1fr 360px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=text], input[type=password], input[type=number], select, textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    button{background:var(--accent);border:none;padding:8px 10px;border-radius:8px;color:#012;cursor:pointer}
+    .muted{color:var(--muted);font-size:13px}
+    .items-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+    .item{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px}
+    .item img{width:100%;height:110px;object-fit:cover;border-radius:6px}
+    .flex{display:flex;gap:8px;align-items:center}
+    .cart{background:rgba(0,0,0,0.15);padding:8px;border-radius:8px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.02)}
+    .small{font-size:13px}
+    .actions button{background:#fdba74;color:#112;padding:6px 8px;border-radius:6px}
+    .danger{background:#fb7185;color:#200}
+    .success{background:var(--success);color:#012}
+    .topbar{display:flex;gap:8px;align-items:center}
+    .hidden{display:none}
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+    .img-preview{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.03)}
+    .search{display:flex;gap:8px}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:6px;border-radius:6px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>PDV - Sistema Simples</h1>
+      <div class="topbar">
+        <div id="currentUser" class="muted">Não conectado</div>
+        <button id="btnLogout" class="btn-ghost hidden">Sair</button>
+      </div>
+    </header>
+
+    <div class="grid two">
+      <div>
+        <div class="card" id="authCard">
+          <div id="loginView">
+            <h3>Entrar</h3>
+            <label>Usuário (email ou nome)</label>
+            <input id="loginUser" type="text" />
+            <label>Senha</label>
+            <input id="loginPass" type="password" />
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="btnLogin">Entrar</button>
+              <button id="showRegister" class="btn-ghost">Criar usuário</button>
+            </div>
+          </div>
+
+          <div id="registerView" class="hidden">
+            <h3>Criar Usuário</h3>
+            <label>Usuário</label>
+            <input id="regUser" type="text" />
+            <label>Senha</label>
+            <input id="regPass" type="password" />
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="btnRegister">Salvar</button>
+              <button id="showLogin" class="btn-ghost">Voltar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Cadastro de Itens</h3>
+          <label>Nome do item</label>
+          <input id="itemName" type="text" placeholder="Ex: Coca-Cola 350ml" />
+          <label>Preço (use . como separador)</label>
+          <input id="itemPrice" type="number" step="0.01" placeholder="0.00" />
+          <label>Foto do item</label>
+          <input id="itemPhoto" type="file" accept="image/*" />
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <button id="btnAddItem">Adicionar item</button>
+            <button id="btnClearForm" class="btn-ghost">Limpar</button>
+          </div>
+          <div id="editNote" class="muted small" style="margin-top:8px"></div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>Itens Cadastrados</h3>
+            <div class="search">
+              <input id="search" placeholder="Pesquisar" />
+              <button id="btnExport" class="btn-ghost">Exportar JSON</button>
+            </div>
+          </div>
+
+          <div id="itemsContainer" class="items-list" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <h3>Tela de Pedido</h3>
+          <label>Selecionar item</label>
+          <select id="selectItem"></select>
+          <label>Quantidade</label>
+          <input id="qty" type="number" value="1" min="1" />
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <button id="btnAddToCart">Adicionar ao pedido</button>
+            <button id="btnNewOrder" class="btn-ghost">Novo pedido</button>
+          </div>
+
+          <div style="margin-top:12px">
+            <h4>Pedido (carrinho)</h4>
+            <div id="cartList" class="cart small"></div>
+            <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+              <div class="muted">Total:</div>
+              <div id="cartTotal" style="font-weight:700">R$ 0,00</div>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <button id="btnSaveOrder" class="success">Salvar pedido</button>
+              <button id="btnViewOrders" class="btn-ghost">Ver pedidos salvos</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="ordersCard" style="margin-top:12px;max-height:360px;overflow:auto">
+          <h3>Pedidos Salvos</h3>
+          <div id="ordersList" class="small muted">Nenhum pedido salvo</div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer>Gerado pelo sistema PDV simples. Os dados são armazenados localmente no seu navegador (localStorage).</footer>
+  </div>
+
+<script>
+// --- Storage keys ---
+const KEY_USERS = 'pdv_users'
+const KEY_CURRENT = 'pdv_currentUser'
+const KEY_ITEMS = 'pdv_items'
+const KEY_ORDERS = 'pdv_orders'
+
+// --- Simple helpers ---
+const q = sel => document.querySelector(sel)
+const money = v => Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+
+// --- Init ---
+let users = JSON.parse(localStorage.getItem(KEY_USERS) || '[]')
+let currentUser = localStorage.getItem(KEY_CURRENT) || null
+let items = JSON.parse(localStorage.getItem(KEY_ITEMS) || '[]')
+let orders = JSON.parse(localStorage.getItem(KEY_ORDERS) || '[]')
+let editingItemId = null
+let cart = []
+
+// --- Auth ---
+function saveUsers(){ localStorage.setItem(KEY_USERS, JSON.stringify(users)) }
+function saveCurrent(){ if(currentUser) localStorage.setItem(KEY_CURRENT, currentUser); else localStorage.removeItem(KEY_CURRENT) }
+
+q('#showRegister').onclick = ()=>{ q('#loginView').classList.add('hidden'); q('#registerView').classList.remove('hidden') }
+q('#showLogin').onclick = ()=>{ q('#registerView').classList.add('hidden'); q('#loginView').classList.remove('hidden') }
+
+q('#btnRegister').onclick = ()=>{
+  const u = q('#regUser').value.trim(); const p = q('#regPass').value
+  if(!u || !p){ alert('Preencha usuário e senha'); return }
+  if(users.find(x=>x.user===u)){ alert('Usuário já existe'); return }
+  users.push({user:u,pass:p})
+  saveUsers()
+  alert('Usuário criado')
+  q('#regUser').value=''; q('#regPass').value=''
+  q('#registerView').classList.add('hidden'); q('#loginView').classList.remove('hidden')
+}
+
+q('#btnLogin').onclick = ()=>{
+  const u = q('#loginUser').value.trim(); const p = q('#loginPass').value
+  const found = users.find(x=>x.user===u && x.pass===p)
+  if(!found){ alert('Usuário ou senha inválidos') ; return }
+  currentUser = u; saveCurrent(); renderAuth()
+}
+
+q('#btnLogout').onclick = ()=>{ currentUser = null; saveCurrent(); renderAuth() }
+
+function renderAuth(){
+  if(currentUser){ q('#currentUser').textContent = currentUser; q('#btnLogout').classList.remove('hidden'); q('#authCard').classList.add('hidden') }
+  else{ q('#currentUser').textContent = 'Não conectado'; q('#btnLogout').classList.add('hidden'); q('#authCard').classList.remove('hidden') }
+}
+
+// --- Items ---
+function saveItems(){ localStorage.setItem(KEY_ITEMS, JSON.stringify(items)) }
+
+q('#itemPhoto').addEventListener('change', ()=>{})
+q('#btnAddItem').onclick = async ()=>{
+  if(!currentUser){ alert('Faça login para cadastrar itens'); return }
+  const name = q('#itemName').value.trim(); const price = parseFloat(q('#itemPrice').value)
+  if(!name || isNaN(price)){ alert('Preencha nome e preço válidos'); return }
+  const file = q('#itemPhoto').files[0]
+  let imgData = null
+  if(file){ imgData = await toBase64(file) }
+  if(editingItemId){ // edit
+    const it = items.find(x=>x.id===editingItemId)
+    if(it){ it.name=name; it.price=price; if(imgData) it.photo = imgData }
+    editingItemId = null; q('#editNote').textContent = ''
+  } else {
+    items.push({id:Date.now().toString(),name,price,photo:imgData})
+  }
+  saveItems(); renderItems(); clearForm()
+}
+
+q('#btnClearForm').onclick = clearForm
+function clearForm(){ q('#itemName').value=''; q('#itemPrice').value=''; q('#itemPhoto').value=''; editingItemId=null; q('#editNote').textContent='' }
+
+function toBase64(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(); fr.readAsDataURL(file) }) }
+
+function renderItems(filter=''){
+  const container = q('#itemsContainer'); container.innerHTML=''
+  const sel = q('#selectItem'); sel.innerHTML = ''
+  const f = filter.trim().toLowerCase()
+  items.forEach(it=>{
+    if(f && !(it.name.toLowerCase().includes(f))) return
+    const div=document.createElement('div'); div.className='item'
+    const img = document.createElement('img'); img.src = it.photo || placeholder(it.name)
+    const title = document.createElement('div'); title.textContent = it.name; title.style.fontWeight='600'; title.style.marginTop='6px'
+    const price = document.createElement('div'); price.className='muted small'; price.textContent = money(it.price)
+    const actions = document.createElement('div'); actions.className='flex'; actions.style.marginTop='8px'
+    const btnEdit = document.createElement('button'); btnEdit.textContent='Editar'; btnEdit.onclick = ()=>startEdit(it.id)
+    const btnDel = document.createElement('button'); btnDel.textContent='Excluir'; btnDel.className='danger'; btnDel.onclick = ()=>{ if(confirm('Remover item?')){ items = items.filter(x=>x.id!==it.id); saveItems(); renderItems(q('#search').value) } }
+    actions.appendChild(btnEdit); actions.appendChild(btnDel)
+    div.appendChild(img); div.appendChild(title); div.appendChild(price); div.appendChild(actions)
+    container.appendChild(div)
+    // select option
+    const opt = document.createElement('option'); opt.value = it.id; opt.textContent = `${it.name} — ${money(it.price)}`
+    sel.appendChild(opt)
+  })
+  if(items.length===0) container.innerHTML = '<div class="muted">Nenhum item cadastrado</div>'
+}
+
+function placeholder(text){ // tiny placeholder using initials
+  const initials = text.split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase()
+  // create data url
+  const canvas = document.createElement('canvas'); canvas.width=400; canvas.height=250; const ctx=canvas.getContext('2d')
+  ctx.fillStyle='#1f2937'; ctx.fillRect(0,0,canvas.width,canvas.height)
+  ctx.fillStyle='#9ca3af'; ctx.font='60px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(initials,200,125)
+  return canvas.toDataURL()
+}
+
+function startEdit(id){ const it = items.find(x=>x.id===id); if(!it) return; editingItemId=id; q('#itemName').value=it.name; q('#itemPrice').value=it.price; q('#editNote').textContent='Editando item — alterar foto é opcional' }
+
+q('#search').addEventListener('input', ()=>{ renderItems(q('#search').value) })
+
+q('#btnExport').onclick = ()=>{ const data = JSON.stringify(items, null, 2); const w = window.open(); w.document.write('<pre>'+escapeHtml(data)+'</pre>') }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;') }
+
+// --- Orders ---
+function saveOrders(){ localStorage.setItem(KEY_ORDERS, JSON.stringify(orders)) }
+
+q('#btnAddToCart').onclick = ()=>{
+  const id = q('#selectItem').value; const qty = parseInt(q('#qty').value) || 1
+  const it = items.find(x=>x.id===id); if(!it){ alert('Selecione um item'); return }
+  const existing = cart.find(c=>c.id===id)
+  if(existing) existing.qty += qty; else cart.push({id:it.id,name:it.name,price:it.price,qty})
+  renderCart()
+}
+
+q('#btnNewOrder').onclick = ()=>{ if(confirm('Iniciar novo pedido? Cancelará o carrinho atual.')){ cart=[]; renderCart() } }
+
+function renderCart(){ const node = q('#cartList'); node.innerHTML=''
+  if(cart.length===0) node.innerHTML='<div class="muted">Carrinho vazio</div>'
+  cart.forEach(c=>{ const d=document.createElement('div'); d.className='flex'; d.style.justifyContent='space-between'; d.innerHTML = `<div>${c.name} x ${c.qty}</div><div>${money(c.price*c.qty)} <button style="margin-left:8px" onclick="changeQty('${c.id}',-1)">-</button><button onclick="changeQty('${c.id}',1)">+</button> <button onclick=removeFromCart('${c.id}') class='btn-ghost'>Rem</button></div>`; node.appendChild(d) })
+  q('#cartTotal').textContent = money(cart.reduce((s,c)=>s+c.price*c.qty,0))
+}
+
+window.changeQty = (id,delta)=>{ const it = cart.find(c=>c.id===id); if(!it) return; it.qty += delta; if(it.qty<=0) cart = cart.filter(x=>x.id!==id); renderCart() }
+window.removeFromCart = id=>{ cart = cart.filter(x=>x.id!==id); renderCart() }
+
+q('#btnSaveOrder').onclick = ()=>{
+  if(!currentUser){ alert('Faça login para salvar pedidos'); return }
+  if(cart.length===0){ alert('Carrinho vazio'); return }
+  const order = {id:Date.now().toString(),user:currentUser,items:cart.slice(),total:cart.reduce((s,c)=>s+c.price*c.qty,0),created:new Date().toISOString()}
+  orders.push(order); saveOrders(); cart=[]; renderCart(); renderOrders()
+  alert('Pedido salvo')
+}
+
+function renderOrders(){ const node = q('#ordersList'); node.innerHTML=''
+  if(orders.length===0){ node.innerHTML='<div class="muted">Nenhum pedido salvo</div>'; return }
+  orders.slice().reverse().forEach(o=>{
+    const d = document.createElement('div'); d.style.borderBottom='1px solid rgba(255,255,255,0.03)'; d.style.padding='8px 0'
+    const header = document.createElement('div'); header.style.display='flex'; header.style.justifyContent='space-between'
+    header.innerHTML=`<div><strong>${o.user}</strong> — ${new Date(o.created).toLocaleString()}</div><div>${money(o.total)}</div>`
+    const body = document.createElement('div'); body.className='small muted'; body.style.marginTop='6px'
+    body.innerHTML = o.items.map(i=>`${i.name} x ${i.qty} = ${money(i.price*i.qty)}`).join('<br>')
+    const actions = document.createElement('div'); actions.style.marginTop='6px'
+    const btnDel = document.createElement('button'); btnDel.textContent='Excluir pedido'; btnDel.className='danger'; btnDel.onclick = ()=>{ if(confirm('Excluir este pedido?')){ orders = orders.filter(x=>x.id!==o.id); saveOrders(); renderOrders() } }
+    actions.appendChild(btnDel)
+    d.appendChild(header); d.appendChild(body); d.appendChild(actions)
+    node.appendChild(d)
+  })
+}
+
+q('#btnViewOrders').onclick = ()=>{ renderOrders(); window.location.hash = '#orders' }
+
+// --- Load / init ---
+function init(){ renderAuth(); renderItems(); renderOrders(); renderCart();
+  // add demo admin if no users
+  if(users.length===0){ users.push({user:'admin',pass:'1234'}); saveUsers() }
+}
+
+init()
+
+// Optional: cleanup old orders > 90 days
+function cleanupOldOrders(days=90){ const cutoff = Date.now() - days*24*60*60*1000; const before = orders.length; orders = orders.filter(o=> new Date(o.created).getTime() >= cutoff); if(orders.length!==before) saveOrders(); }
+// call cleanup once
+cleanupOldOrders(365)
+
+</script>
+</body>
+</html>
