@@ -19,3 +19,74 @@
   </div>
 </body>
 </html>
+
+
+---
+
+📄 login.html
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login - PDV</title>
+  <style>
+    body{background:#0f172a;margin:0;color:white;font-family:Arial}
+    .box{max-width:420px;margin:60px auto;padding:20px;background:#1e293b;border-radius:12px}
+    input{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none}
+    button{width:100%;padding:10px;background:#06b6d4;border:none;color:#012;font-weight:bold;border-radius:6px;margin-top:10px}
+    a{color:#06b6d4;text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Entrar</h2>
+    <input id="loginUser" placeholder="Usuário" />
+    <input id="loginPass" type="password" placeholder="Senha" />
+    <button onclick="login()">Entrar</button>
+    <p><a href="register.html">Criar usuário</a></p>
+  </div>
+
+<script>
+function login(){
+  const users = JSON.parse(localStorage.getItem('pdv_users')||'[]');
+  const u = loginUser.value.trim();
+  const p = loginPass.value;
+  if(users.find(x=>x.user===u && x.pass===p)){
+    localStorage.setItem('pdv_currentUser',u);
+    window.location = 'index.html';
+  } else alert('Usuário ou senha inválidos');
+}
+</script>
+</body>
+</html>
+
+
+---
+
+📄 register.html
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cadastro de Usuário</title>
+  <style>
+    body{background:#0f172a;color:white;font-family:Arial;margin:0}
+    .box{max-width:420px;margin:60px auto;padding:20px;background:#1e293b;border-radius:12px}
+    input{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:none}
+    button{width:100%;padding:10px;background:#06b6d4;border:none;color:#012;font-weight:bold;border-radius:6px;margin-top:10px}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Criar Usuário</h2>
+    <input id="regUser" placeholder="Usuário" />
+    <input id="regPass" type="password" placeholder="Senha" />
+    <button onclick="registerUser()">Salvar</button>
+  </div>
+
+<script>
+function registerUser(){
