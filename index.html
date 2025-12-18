@@ -1,18 +1,189 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Jogo de Clique</title>
-</head>
-<body style="text-align:center;">
-  <h1>Pontuação: <span id="score">0</span></h1>
-  <button onclick="clickGame()">CLIQUE AQUI</button>
+<meta charset="UTF-8">
+<title>Quoridor Online</title>
 
-  <script>
-    let score = 0;
-    function clickGame() {
-      score++;
-      document.getElementById("score").innerText = score;
+<style>
+body {
+  font-family: Arial;
+  background: #eee;
+  text-align: center;
+}
+
+#menu, #game {
+  margin-top: 20px;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(9, 50px);
+  gap: 2px;
+  justify-content: center;
+  margin: 20px auto;
+}
+
+.cell {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border: 1px solid #333;
+  position: relative;
+  cursor: pointer;
+}
+
+.p1, .p2 {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+.p1 { background: red; }
+.p2 { background: blue; }
+
+.hidden { display: none; }
+
+input, button {
+  padding: 8px;
+  margin: 5px;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🧱 Quoridor Online</h1>
+
+<div id="menu">
+  <button onclick="createRoom()">Criar Sala</button><br>
+  <input id="roomCode" placeholder="Código da sala">
+  <button onclick="joinRoom()">Entrar</button>
+</div>
+
+<div id="game" class="hidden">
+  <p>Sala: <span id="roomId"></span></p>
+  <p>Você é o Jogador: <b id="playerNum"></b></p>
+  <p>Turno: Jogador <span id="turn"></span></p>
+  <div id="board"></div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// 🔥 COLE AQUI SUAS CHAVES DO FIREBASE
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_DOMINIO",
+  projectId: "SEU_PROJECT_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ---------------- JOGO ----------------
+
+let room = null;
+let player = null;
+
+const size = 9;
+
+function createBoard(state) {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.onclick = () => move(x, y);
+      cell.id = `c-${x}-${y}`;
+      board.appendChild(cell);
     }
-  </script>
+  }
+  render(state);
+}
+
+function render(state) {
+  document.querySelectorAll(".p1,.p2").forEach(e => e.remove());
+
+  Object.keys(state.players).forEach(p => {
+    const pos = state.players[p];
+    const piece = document.createElement("div");
+    piece.className = p == 1 ? "p1" : "p2";
+    document.getElementById(`c-${pos.x}-${pos.y}`).appendChild(piece);
+  });
+
+  document.getElementById("turn").innerText = state.turn;
+}
+
+function move(x, y) {
+  if (!room || player != currentState.turn) return;
+
+  const p = currentState.players[player];
+  const dx = Math.abs(p.x - x);
+  const dy = Math.abs(p.y - y);
+
+  if (dx + dy !== 1) return;
+
+  p.x = x;
+  p.y = y;
+
+  if ((player == 1 && y == 0) || (player == 2 && y == 8)) {
+    alert("🏆 Você venceu!");
+  }
+
+  currentState.turn = player == 1 ? 2 : 1;
+  saveState();
+}
+
+// ---------------- FIREBASE ----------------
+
+let currentState = null;
+
+function createRoom() {
+  const id = Math.random().toString(36).substring(2, 7);
+
+  db.collection("rooms").doc(id).set({
+    turn: 1,
+    players: {
+      1: { x: 4, y: 8 },
+      2: { x: 4, y: 0 }
+    }
+  });
+
+  enterRoom(id, 1);
+}
+
+function joinRoom() {
+  const id = document.getElementById("roomCode").value;
+  enterRoom(id, 2);
+}
+
+function enterRoom(id, p) {
+  room = id;
+  player = p;
+
+  document.getElementById("menu").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  document.getElementById("roomId").innerText = id;
+  document.getElementById("playerNum").innerText = p;
+
+  db.collection("rooms").doc(id).onSnapshot(doc => {
+    if (!doc.exists) return;
+    currentState = doc.data();
+    createBoard(currentState);
+  });
+}
+
+function saveState() {
+  db.collection("rooms").doc(room).set(currentState);
+}
+</script>
+
 </body>
 </html>
