@@ -1,7 +1,10 @@
 <!doctype html>
-
-
-<style>
+<html>
+	<head>
+		<title></title>
+	</head>
+	<body>
+		<style type="text/css">
 body{
     font-family: Arial;
     text-align:center;
@@ -80,24 +83,15 @@ button{
     color:white;
     font-size:16px;
     cursor:pointer;
-}
-</style>
-
-
-
-<h1>  </h1>
-
-<div class="info">
-    <div>Jogador 1: <span id="p1">0</span></div>
-    <div>Jogador 2: <span id="p2">0</span></div>
-    <div id="vez">Vez do Jogador 1</div>
-</div>
-
-<div id="tabuleiro"></div>
-
-<button onclick="reiniciar()">Reiniciar</button>
-
-<script>
+}		</style>
+		<h1>
+			<span style="font-size: 24px;">Jogador</span><span style="font-size: 18px;"> 1: </span><span id="p1" style="font-size: 18px;">0&nbsp;&nbsp;</span><span style="font-size: 24px;">Jogador</span><span style="font-size: 18px;"> 2: </span><span id="p2" style="font-size: 18px;">0</span></h1>
+		<div class="info">
+			<div id="vez">
+				Vez do Jogador 1</div>
+		</div>
+		<p>
+			<button onclick="reiniciar()">Reiniciar</button><script>
 
 const animais = [
 "https://cdn-icons-png.flaticon.com/512/616/616408.png", // cachorro
@@ -254,7 +248,6 @@ function reiniciar(){
 criarCartas();
 criarTabuleiro();
 
-</script>
-
-
-</!doctype>
+</script><!--!doctype--></p>
+	</body>
+</html>
